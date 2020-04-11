@@ -17,12 +17,12 @@ int main()
 	} 
     pid = fork();
 
-    if (pic < 0 ){
+    if (pid < 0 ){
         fprintf(stderr, "fork Failed" ); 
 		return 1;
     }else if(pid == 0){
         close(1);
-        dup2(fd[1]);
+        dup(fd[1]);
         close(fd[0]);
         execlp("ls","ls",NULL);
     }else{
