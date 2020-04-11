@@ -1,54 +1,197 @@
 # SoalShiftSISOP20_modul3_B07
 
 ## Soal 3
-
-### Fungsi untuk mencari ekstensi dari suatu file :
+#### Inisiasi Struct
 ```
-const char *cari_ekstensi(const char *nama_file){
-	char *ekstensi = strrchr (nama_file, '.');
-	if (ekstensi == null)
-	return "unknown";
-	return ekstensi + 1;
+struct v
+{
+    char *x[1];
+    char *y[1];
+    char *z[1];
+    char *w[1];
+};
+```
+#### Variabel Global
+```
+int status;
+pthread_t tid[3];
+```
+#### Fungsi untuk mencari nama file dan ekstensi
+```
+static void StripFileName(char *FileName, char *NewFileName, char *extension){
+    int PLocation;
+    int i, j, x, y, z;
+
+    i = strlen(FileName) - 1;
+    
+/* Mencari awal nama file atau titik */
+    while (i && FileName[i] != '.')
+    {
+        i--;
+    }
+    
+/* Jika i > 1, nama file memiliki "." (titik) */
+    if (i)
+    {
+        PLocation = i;
+    }
+    else
+    {
+/* Jika nama file tidak memiliki "." (titik) */    
+        PLocation = strlen(FileName);
+
+/* Me-reset nilai i */ 
+        i = strlen(FileName) - 1;
+    }
+
+    while (i && FileName[i] != '/')
+    {
+        if (FileName[i] != '/')
+            i--;
+    }
+
+ /* Jika nama file memiliki separator, longkap 1 character */
+    if (FileName[i] == '/')
+        i++;
+
+    x = 0;
+
+    while (i < PLocation)
+    {
+        NewFileName[x] = FileName[i];
+        x++;
+        i++;
+    }
+  
+  /* Meng-copy ekstensi */
+    y = 0;
+    j = strlen(FileName) - 1;
+    while (i<j)
+    {
+        extension[y] = FileName[i+1];
+        y++;
+        i++;
+    }
+
+    NewFileName[x] = '\0';
+    extension[y] = '\0';
 }
 ```
-
-### Fungsi untuk memindahkan file ke lokasi lain :
+#### Fungsi untuk membuat directory
 ```
-void *bikin_folder(void *arg){
+void* makedir(void *argue){
+    struct v *arg = (struct v*) argue;
 
-fgets(source, MAX, stdin);
-source[strlen(source)- 1] = '\0';
+    status = 1;
 
-fgets(dest, MAX, stdin);
-dest[strlen(target) - 1] = '\0';
+    mkdir(*arg->y, 0777);
 
-file1 = fopen(source, "r");
-file2 = fopen(dest, "w");
-
-while((ch = fgetc(file1)) != EOF){
-	fputc(ch, file2);
-}
-
-fclose(file1);
-fclose(file2);
-
-return 0;
+        return NULL;
 }
 ```
-
-### Fungsi untuk menampilkan file di suatu directory :
+#### Fungsi untuk memindahkan file
 ```
-void *list_folder (void *arg){
+void* move(void *argue){
+    struct v *arg = (struct v*) argue;
 
-d = opendir(".");
+    while (status != 1)
+    {
 
-if (d){
-while ((dir = readdir(d)) != NULL){
-	printf("%s\n", dir->d_name);
+    }
+
+    int ch;
+    FILE *fp1, *fp2;
+
+    fp1 = fopen(*arg->z, "r");
+    fp2 = fopen(*arg->w, "w");
+
+/* Meng-copy isi dari file awal ke file tujuan */
+    while ((ch = fgetc(fp1)) != EOF) {
+            fputc(ch, fp2);
+    }
+    
+/* Menutup file */
+    fclose(fp1);
+    fclose(fp2);
+    
+/* Remove file lama */
+    remove(*arg->z);
+
+        return NULL;
 }
-closedir(d);
-}
-return(0);
+```
+#### Fungsi Main
+```
+int main(int argc, char* argv[]){
+    char FileName[31];
+    char NewFileName[31];
+    char extension[5];
+    char awal[50];
+    char akhir[50];
+    char bintang[] = "*";
+    char f[] = "-f";
+    char d[] = "-d";
+    int i = 2;
+
+/* Untuk argumen "-f" */
+    if (strcmp (argv[1],f) == 0)
+    {
+        for (; i < argc; i++)
+        {
+	
+	/* memset */
+            memset(FileName, 0, sizeof(FileName));
+            memset(NewFileName, 0, sizeof(NewFileName));
+            memset(extension, 0, sizeof(extension));
+            memset(awal, 0, sizeof(awal));
+            memset(akhir, 0, sizeof(akhir));
+	
+	/* mencari path, nama file, dan ekstensi */
+            strcpy(FileName, argv[i]);
+            StripFileName(FileName, NewFileName, extension);
+            strcat(NewFileName, ".");
+            strcat(NewFileName, extension);
+            strcat(awal, "/Home/SoalShiftSISOP20_modul3_B07/soal3/soal3/soal3");
+            strcat(awal, NewFileName);
+            strcat(akhir, "/Home/SoalShiftSISOP20_modul3_B07/soal3/soal3/soal3");
+            strcat(akhir, extension);
+            strcat(akhir, "/");
+            strcat(akhir, NewFileName);
+
+            /* memindahkan kedalam struct */
+            struct v *data = (struct v*) malloc (sizeof (struct v));
+            *data -> x = NewFileName;
+            *data -> y = extension;
+            *data -> z = awal;
+            *data -> w = akhir;
+
+            int k = 0;
+            status = 0;
+
+            /* membuat thread */
+            while (k<2)
+            {
+                if(k==0){
+                    pthread_create(&(tid[k]),NULL,&makedir,(void *) data);
+                } else {
+                    pthread_create(&(tid[k]),NULL,&move,(void *) data);
+                }
+                pthread_join(tid[k],NULL);
+                k++;
+            }
+        }
+    }
+
+    if (strcmp (argv[1],bintang) == 0)
+    {
+
+    }
+
+    if (strcmp (argv[1],d) == 0)
+    {
+
+    }
+    return 0;
 }
 ```
 ## Soal 4
